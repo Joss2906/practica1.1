@@ -222,7 +222,8 @@ class LoginController extends Controller
         
         Log::channel('slackNotification')
             ->info('El usuario cerró sesión', ['email' => Auth::user()->email]);
-
+        
+        Cookie::queue(Cookie::forget('id'));
         Auth::logout();
 
         return redirect()->route('auth');

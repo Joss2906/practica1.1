@@ -45,9 +45,10 @@ class VerificationCodeController extends Controller
                 $code->delete();
             }
 
+            Cookie::queue(Cookie::forget('id'));
             Session::flush();
             Auth::logout();
-        
+            
             return redirect()->route('auth');
         }
 
