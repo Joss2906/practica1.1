@@ -26,10 +26,10 @@ Route::get('auth', [LoginController::class, 'loginForm'])->name('auth');
 Route::get('register', [LoginController::class, 'registerForm'])->name('register');
 Route::post('register', [LoginController::class, 'create'])->name('register');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('welcome', [LoginController::class, 'welcome'])->name('welcome')->middleware('2fa') ;
-    Route::get('logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('verify', [VerificationCodeController::class, 'verifyCodeView'])->name('verify');
+Route::post('verify', [VerificationCodeController::class, 'validateCode'])->name('verify');
 
-    Route::get('verify', [VerificationCodeController::class, 'verifyCodeView'])->name('verify');
-    Route::post('verify', [VerificationCodeController::class, 'validateCode'])->name('verify');
+Route::middleware(['auth'])->group(function () {
+    Route::get('welcome', [LoginController::class, 'welcome'])->name('welcome');
+    Route::get('logout', [LoginController::class, 'logout'])->name('logout');
 });

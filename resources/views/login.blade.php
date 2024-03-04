@@ -14,6 +14,12 @@
 							<h2 class="text-uppercase text-center mb-5">Iniciar Sesion</h2>
 							<form method="POST" action="{{ route('auth') }}">
 								@csrf
+
+								@if( session('error'))
+									<div class="alert alert-danger" role="alert">
+										{{ session('error') }}
+									</div>
+								@endif
 								
 								<div class="form-outline mb-4">
 									<label class="form-label" for="inp_email">Your Email</label>

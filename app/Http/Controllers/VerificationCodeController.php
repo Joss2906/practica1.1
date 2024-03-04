@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cookie;
 
 class VerificationCodeController extends Controller
 {
@@ -37,14 +38,17 @@ class VerificationCodeController extends Controller
 
         if (!$request->hasValidSignature()) {
 
-            $user = Auth::user();
-            $code = Code::where("user_id", $user->id)->first();
-            $code->delete();
+            $userId = Cookie::get('id');
+            $code = Code::where("user_id", $userId)->first();
+
+            if ($code instanceOf Code) {
+                $code->delete();
+            }
 
             Session::flush();
             Auth::logout();
         
-            abort(419);
+            return redirect()->route('auth');
         }
 
         return view('code');
@@ -73,20 +77,24 @@ class VerificationCodeController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            $user = Auth::user();
-            $codeModel = Code::where('user_id', $user->id)->first();
+            $userId = Cookie::get('id');
+            $codeModel = Code::where('user_id', $userId)->first();
+
             $codigo = $codeModel->code;
-    
+            $user = User::find($userId);
+
             if (password_verify($request->code, $codigo)) {
 
-                $user = User::find($user->id);
+                Auth::loginUsingId($user->id);
+                $request->session()->regenerate();
+                                
                 $user->is_active = 1;
                 $user->save();
                 
                 Log::channel('slackNotification')
                     ->info('Usuario ingresó código correcto', ['email' => $user->email]);
 
-                
+
                 $codeModel->delete();
 
                 Log::channel('slackNotification')
@@ -128,4 +136,3 @@ class VerificationCodeController extends Controller
     }
 
 }
-// }
