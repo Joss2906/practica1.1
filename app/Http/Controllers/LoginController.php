@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cookie;
 
 
 class LoginController extends Controller
@@ -78,47 +79,57 @@ class LoginController extends Controller
             if ($validator->fails()) {
                 return redirect()->back()->withErrors($validator)->withInput();
             }
+
+            $userToValidate = User::query()->where('email', $email)->first();
+            $passwdChecked = false;
+
+            if ($userToValidate instanceof User) {
+                $passwdChecked = password_verify($password, $userToValidate->password);
+            }
+
+            $user = $passwdChecked ? $userToValidate : null;
+
+            if (!$user) {
+                return redirect()->back()->with('error', 'Algun dato proporcionado es incorrecto');
+            }
     
-            if (Auth::attempt($request->only('email', 'password'))) {
-    
-                $user = Auth::user();
-    
-                if ($user->role_id == 1) {
-    
-                    $verificationCode = rand(10000, 99999);
-                    $url = URL::temporarySignedRoute('verify', now()->addMinutes(5));
-    
-                    VerificationCodeController::saveCode($verificationCode, $user->id);
-    
-                    Mail::to($user->email)->send(new MailService($user->name, $verificationCode));
-    
-                    Log::channel('slackNotification')
-                        ->info(
-                            'Se envió código de verificacion al correo del usuario',
-                            ['email' => $email]
-                        );
-    
-                    return Redirect::to($url);
-    
-                } else {
-    
-                    $userCreated = User::where('id', $user->id)->first();
-    
-                    $userCreated->is_active = 1;
-                    $userCreated->save();
-    
-                    Log::channel('slackNotification')
-                        ->info('El usuario inició sesión', ['email' => $email]);
-    
-                    return redirect()->route('welcome')->with(
-                        [
-                            'success' => $user->name,
-                            'role' => $user->role_id
-                        ]
+            if ($user->role_id == 1) {
+
+                $verificationCode = rand(10000, 99999);
+                $url = URL::temporarySignedRoute('verify', now()->addMinutes(5));
+                Cookie::queue('id', $user->id, 5);
+
+                VerificationCodeController::saveCode($verificationCode, $user->id);
+
+                Mail::to($user->email)->send(new MailService($user->name, $verificationCode));
+
+                Log::channel('slackNotification')
+                    ->info(
+                        'Se envió código de verificacion al correo del usuario',
+                        ['email' => $email]
                     );
-    
-                }
-                
+
+                return Redirect::to($url);
+
+            } else {
+                Auth::loginUsingId($user->id);
+                $request->session()->regenerate();
+
+                $userCreated = User::where('id', $user->id)->first();
+
+                $userCreated->is_active = 1;
+                $userCreated->save();
+
+                Log::channel('slackNotification')
+                    ->info('El usuario inició sesión', ['email' => $email]);
+
+                return redirect()->route('welcome')->with(
+                    [
+                        'success' => $user->name,
+                        'role' => $user->role_id
+                    ]
+                );
+
             }
 
         } catch (ValidationException $e) {
