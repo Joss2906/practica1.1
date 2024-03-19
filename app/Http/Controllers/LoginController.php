@@ -224,6 +224,7 @@ class LoginController extends Controller
             ->info('El usuario cerró sesión', ['email' => Auth::user()->email]);
         
         Cookie::queue(Cookie::forget('id'));
+        Session::flush();
         Auth::logout();
 
         return redirect()->route('auth');

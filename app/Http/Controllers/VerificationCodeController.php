@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Cookie;
 
 class VerificationCodeController extends Controller
 {
-    //
     public static function saveCode($code, $user_id) {
 
         try {
@@ -79,7 +78,8 @@ class VerificationCodeController extends Controller
             }
 
             $userId = Cookie::get('id');
-            $codeModel = Code::where('user_id', $userId)->first();
+            $codeModel = Code::where('user_id', $userId)->orderBy('id', 'desc')->first();
+            
 
             $codigo = $codeModel->code;
             $user = User::find($userId);
@@ -90,30 +90,32 @@ class VerificationCodeController extends Controller
                 $request->session()->regenerate();
                                 
                 $user->is_active = 1;
-                $user->save();
-                
-                Log::channel('slackNotification')
-                    ->info('Usuario ingresó código correcto', ['email' => $user->email]);
+                if ($user->save()) {
 
+                    Log::channel('slackNotification')
+                        ->info('Usuario ingresó código correcto', ['email' => $user->email]);
 
-                $codeModel->delete();
+                    
+                    $deletedCodes = Code::where('user_id', $userId)->get();
+                    foreach ($deletedCodes as $deletedCode) {
+                        $deletedCode->delete();
+                    }
 
-                Log::channel('slackNotification')
-                    ->info('Usuario inicio sesion', ['email' => $user->email]);
-
-                return redirect()->route('welcome')->with(
-                    [
-                        'success' => $user->name,
-                        'role' => $user->role_id
-                    ]
-                );
+                    Log::channel('slackNotification')
+                        ->info('Usuario inicio sesion', ['email' => $user->email]);
+                    
+                    return redirect()->route('welcome')->with(
+                        [
+                            'success' => $user->name,
+                            'role' => $user->role_id
+                        ]
+                    );
+                }
                 
             } else {
 
                 Log::channel('slackNotification')
                     ->error('Usuario ingresó código incorrecto', ['email' => $user->email]);
-
-                $codeModel->delete();
 
                 return redirect()->back()->with('error', 'Código incorrecto');
             }
