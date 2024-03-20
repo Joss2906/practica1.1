@@ -9,6 +9,7 @@ class VerificationCode extends Model
 {
     use HasFactory;
     protected $table = 'verification_codes';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'user_id', 
         'code'
