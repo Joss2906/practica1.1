@@ -77,7 +77,9 @@ class LoginController extends Controller
             );
     
             if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
+                //TODO:
+                // return redirect()->back()->withErrors($validator)->withInput();
+                return redirect()->route('auth')->withErrors($validator)->withInput();
             }
 
             $userToValidate = User::query()->where('email', $email)->first();
@@ -115,7 +117,8 @@ class LoginController extends Controller
 
             } else {
                 Auth::loginUsingId($user->id);
-                $request->session()->regenerate();
+                //TODO:
+                // $request->session()->regenerate();
 
                 $userCreated = User::where('id', $user->id)->first();
 

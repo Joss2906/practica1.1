@@ -96,7 +96,8 @@ class VerificationCodeController extends Controller
             if (password_verify($request->code, $codigo)) {
 
                 Auth::loginUsingId($user->id);
-                $request->session()->regenerate();
+                //TODO:
+                // $request->session()->regenerate();
                                 
                 $user->is_active = 1;
                 if ($user->save()) {
