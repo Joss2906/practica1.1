@@ -12,7 +12,7 @@
 					<div class="card" style="border-radius: 15px;">
 						<div class="card-body p-5">
 							<h2 class="text-uppercase text-center mb-5">Verificar Codigo</h2>
-							<form method="POST" action=" {{ route('verify') }}">
+							<form method="POST" action=" {{ route('postVerify') }}">
 								@csrf
 								<!-- <input type="hidden" name="_token" value="{{ csrf_token() }}" /> -->
 								@if( session('error'))
@@ -23,6 +23,7 @@
 
 								<div class="form-outline mb-4">
 									<label class="form-label" for="inp_code">Your Code</label>
+									<input type="hidden" name="id" value="{{ $id }}">
 									<input type="text" id="inp_code" name="code" class="form-control form-control-lg" required />
 									@error('code')
 										<span class="text-danger">{{ $message }}</span>

@@ -25,6 +25,10 @@
                         You are logged in as a user!
                     @endif
 
+                    <!-- <form action="{{ route('logout') }}" method="POST">
+
+                    </form> -->
+
                     <a type="button" class="btn btn-outline-danger" href="/logout">Log Out</a>
                 </div>
             </div>

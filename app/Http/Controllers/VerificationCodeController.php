@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\URL;
 
 class VerificationCodeController extends Controller
 {
@@ -33,16 +34,22 @@ class VerificationCodeController extends Controller
         }
     }
 
-    public static function verifyCodeView(Request $request, $id) {
+    // public static function verifyCodeView(Request $request, $id) {
+    public static function verifyCodeView(Request $request) {
+        $userId = $request->id;
 
         if (!$request->hasValidSignature()) {
+            
 
             // $userId = Cookie::get('id');
-            $code = Code::where("user_id", $id)->first();
+            
+            $code = Code::where("user_id", $userId)->first();
 
             if ($code instanceOf Code) {
                 $code->delete();
             }
+
+            // $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $userId]);
 
             // Cookie::queue(Cookie::forget('id'));
             // Session::flush();
@@ -50,11 +57,12 @@ class VerificationCodeController extends Controller
             
             return redirect()->route('auth');
         }
-
-        return view('code');
+        $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $userId]);
+        return view('code', ['id' => $userId, 'signedRoute' => $url]);
     }
 
-    public static function validateCode(Request $request, $id) {
+    // public static function validateCode(Request $request, $id) {
+    public static function validateCode(Request $request) {
         try {
 
             $rules = [
@@ -77,7 +85,8 @@ class VerificationCodeController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            $userId = Cookie::get('id');
+            // $userId = Cookie::get('id');
+            $userId = $request->id;
             $codeModel = Code::where('user_id', $userId)->orderBy('id', 'desc')->first();
             
 
@@ -103,11 +112,14 @@ class VerificationCodeController extends Controller
 
                     Log::channel('slackNotification')
                         ->info('Usuario inicio sesion', ['email' => $user->email]);
+
+                    // $url = URL::temporarySignedRoute('welcome', now()->addMinutes(5), ['id' => $userId]);
                     
                     return redirect()->route('welcome')->with(
                         [
                             'success' => $user->name,
-                            'role' => $user->role_id
+                            'role' => $user->role_id,
+                            'id' => $userId,
                         ]
                     );
                 }
@@ -117,7 +129,9 @@ class VerificationCodeController extends Controller
                 Log::channel('slackNotification')
                     ->error('Usuario ingresó código incorrecto', ['email' => $user->email]);
 
-                return redirect()->back()->with('error', 'Código incorrecto');
+                $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $userId]);
+                return redirect()->away($url)->with('error', 'Código incorrecto');
+                // return redirect()->back()->with('error', 'Código incorrecto');
             }
         } catch (ValidationException $e) {
 
