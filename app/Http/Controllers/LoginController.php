@@ -77,8 +77,6 @@ class LoginController extends Controller
             );
     
             if ($validator->fails()) {
-                //TODO:
-                // return redirect()->back()->withErrors($validator)->withInput();
                 return redirect()->route('auth')->withErrors($validator)->withInput();
             }
 
@@ -92,7 +90,6 @@ class LoginController extends Controller
             $user = $passwdChecked ? $userToValidate : null;
 
             if (!$user) {
-                // return redirect()->back()->with('error', 'Algun dato proporcionado es incorrecto');
                 return redirect()->route('auth')->with('error', 'Algun dato proporcionado es incorrecto');
             }
     
@@ -100,7 +97,6 @@ class LoginController extends Controller
 
                 $verificationCode = rand(10000, 99999);
                 $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $user->id]);
-                // Cookie::queue('id', $user->id, 5);
 
                 VerificationCodeController::saveCode($verificationCode, $user->id);
 
@@ -112,13 +108,10 @@ class LoginController extends Controller
                         ['email' => $email]
                     );
 
-                // return Redirect::to($url);
                 return redirect()->away($url);
 
             } else {
                 Auth::loginUsingId($user->id);
-                //TODO:
-                // $request->session()->regenerate();
 
                 $userCreated = User::where('id', $user->id)->first();
 
@@ -228,9 +221,6 @@ class LoginController extends Controller
         Log::channel('slackNotification')
             ->info('El usuario cerró sesión', ['email' => Auth::user()->email]);
         
-        // Cookie::queue(Cookie::forget('id'));
-        // Session::flush();
-
         Auth::logout();
         
         $request->session()->invalidate();
