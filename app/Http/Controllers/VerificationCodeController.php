@@ -40,28 +40,18 @@ class VerificationCodeController extends Controller
 
         if (!$request->hasValidSignature()) {
             
-
-            // $userId = Cookie::get('id');
-            
             $code = Code::where("user_id", $userId)->first();
 
             if ($code instanceOf Code) {
                 $code->delete();
             }
 
-            // $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $userId]);
-
-            // Cookie::queue(Cookie::forget('id'));
-            // Session::flush();
-            // Auth::logout();
-            
             return redirect()->route('auth');
         }
         $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $userId]);
         return view('code', ['id' => $userId, 'signedRoute' => $url]);
     }
 
-    // public static function validateCode(Request $request, $id) {
     public static function validateCode(Request $request) {
         try {
 
@@ -85,7 +75,6 @@ class VerificationCodeController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            // $userId = Cookie::get('id');
             $userId = $request->id;
             $codeModel = Code::where('user_id', $userId)->orderBy('id', 'desc')->first();
             
@@ -96,8 +85,6 @@ class VerificationCodeController extends Controller
             if (password_verify($request->code, $codigo)) {
 
                 Auth::loginUsingId($user->id);
-                //TODO:
-                // $request->session()->regenerate();
                                 
                 $user->is_active = 1;
                 if ($user->save()) {
@@ -114,7 +101,6 @@ class VerificationCodeController extends Controller
                     Log::channel('slackNotification')
                         ->info('Usuario inicio sesion', ['email' => $user->email]);
 
-                    // $url = URL::temporarySignedRoute('welcome', now()->addMinutes(5), ['id' => $userId]);
                     
                     return redirect()->route('welcome')->with(
                         [
@@ -132,7 +118,6 @@ class VerificationCodeController extends Controller
 
                 $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $userId]);
                 return redirect()->away($url)->with('error', 'Código incorrecto');
-                // return redirect()->back()->with('error', 'Código incorrecto');
             }
         } catch (ValidationException $e) {
 
