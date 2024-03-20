@@ -12,7 +12,7 @@
 					<div class="card" style="border-radius: 15px;">
 						<div class="card-body p-5">
 							<h2 class="text-uppercase text-center mb-5">Iniciar Sesion</h2>
-							<form method="POST" action="{{ route('auth') }}">
+							<form method="POST" action="{{ route('postAuth') }}">
 								@csrf
 
 								@if( session('error'))

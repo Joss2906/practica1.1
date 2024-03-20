@@ -77,7 +77,9 @@ class LoginController extends Controller
             );
     
             if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
+                //TODO:
+                // return redirect()->back()->withErrors($validator)->withInput();
+                return redirect()->route('auth')->withErrors($validator)->withInput();
             }
 
             $userToValidate = User::query()->where('email', $email)->first();
@@ -90,14 +92,15 @@ class LoginController extends Controller
             $user = $passwdChecked ? $userToValidate : null;
 
             if (!$user) {
-                return redirect()->back()->with('error', 'Algun dato proporcionado es incorrecto');
+                // return redirect()->back()->with('error', 'Algun dato proporcionado es incorrecto');
+                return redirect()->route('auth')->with('error', 'Algun dato proporcionado es incorrecto');
             }
     
             if ($user->role_id == 1) {
 
                 $verificationCode = rand(10000, 99999);
-                $url = URL::temporarySignedRoute('verify', now()->addMinutes(5));
-                Cookie::queue('id', $user->id, 5);
+                $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $user->id]);
+                // Cookie::queue('id', $user->id, 5);
 
                 VerificationCodeController::saveCode($verificationCode, $user->id);
 
@@ -109,11 +112,13 @@ class LoginController extends Controller
                         ['email' => $email]
                     );
 
-                return Redirect::to($url);
+                // return Redirect::to($url);
+                return redirect()->away($url);
 
             } else {
                 Auth::loginUsingId($user->id);
-                $request->session()->regenerate();
+                //TODO:
+                // $request->session()->regenerate();
 
                 $userCreated = User::where('id', $user->id)->first();
 
@@ -218,14 +223,18 @@ class LoginController extends Controller
         
     }
 
-    public static function logout() {
+    public static function logout(Request $request) {
         
         Log::channel('slackNotification')
             ->info('El usuario cerró sesión', ['email' => Auth::user()->email]);
         
-        Cookie::queue(Cookie::forget('id'));
-        Session::flush();
+        // Cookie::queue(Cookie::forget('id'));
+        // Session::flush();
+
         Auth::logout();
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('auth');
     }
