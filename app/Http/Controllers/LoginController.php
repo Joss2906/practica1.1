@@ -90,7 +90,8 @@ class LoginController extends Controller
             $user = $passwdChecked ? $userToValidate : null;
 
             if (!$user) {
-                return redirect()->back()->with('error', 'Algun dato proporcionado es incorrecto');
+                // return redirect()->back()->with('error', 'Algun dato proporcionado es incorrecto');
+                return redirect()->route('auth')->with('error', 'Algun dato proporcionado es incorrecto');
             }
     
             if ($user->role_id == 1) {
@@ -109,7 +110,8 @@ class LoginController extends Controller
                         ['email' => $email]
                     );
 
-                return Redirect::to($url);
+                // return Redirect::to($url);
+                return redirect()->away($url);
 
             } else {
                 Auth::loginUsingId($user->id);
@@ -227,6 +229,7 @@ class LoginController extends Controller
         // Session::flush();
 
         Auth::logout();
+        
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

@@ -12,7 +12,7 @@
 					<div class="card" style="border-radius: 15px;">
 						<div class="card-body p-5">
 							<h2 class="text-uppercase text-center mb-5">Crea una cuenta</h2>
-							<form method="POST" action="{{ route('register') }}">
+							<form method="POST" action="{{ route('postRegister') }}">
 								@csrf
 								
 								@if( session('success'))
