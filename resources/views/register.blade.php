@@ -11,7 +11,7 @@
 				<div class="col-12 col-md-9 col-lg-7 col-xl-6">
 					<div class="card" style="border-radius: 15px;">
 						<div class="card-body p-5">
-							<h2 class="text-uppercase text-center mb-5">Crea una cuenta</h2>
+							<h2 class="text-uppercase text-center mb-5">Crea una cuenta (b)</h2>
 							<form method="POST" action="{{ route('postRegister') }}">
 								@csrf
 								
