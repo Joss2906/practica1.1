@@ -96,8 +96,8 @@ class LoginController extends Controller
             if ($user->role_id == 1) {
 
                 $verificationCode = rand(10000, 99999);
-                $url = URL::temporarySignedRoute('verify', now()->addMinutes(5));
-                Cookie::queue('id', $user->id, 5);
+                $url = URL::temporarySignedRoute('verify', now()->addMinutes(5), ['id' => $user->id]);
+                // Cookie::queue('id', $user->id, 5);
 
                 VerificationCodeController::saveCode($verificationCode, $user->id);
 
@@ -218,14 +218,17 @@ class LoginController extends Controller
         
     }
 
-    public static function logout() {
+    public static function logout(Request $request) {
         
         Log::channel('slackNotification')
             ->info('El usuario cerró sesión', ['email' => Auth::user()->email]);
         
-        Cookie::queue(Cookie::forget('id'));
-        Session::flush();
+        // Cookie::queue(Cookie::forget('id'));
+        // Session::flush();
+
         Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('auth');
     }

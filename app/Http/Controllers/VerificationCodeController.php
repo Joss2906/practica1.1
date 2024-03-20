@@ -33,20 +33,20 @@ class VerificationCodeController extends Controller
         }
     }
 
-    public static function verifyCodeView(Request $request) {
+    public static function verifyCodeView(Request $request, $id) {
 
         if (!$request->hasValidSignature()) {
 
-            $userId = Cookie::get('id');
-            $code = Code::where("user_id", $userId)->first();
+            // $userId = Cookie::get('id');
+            $code = Code::where("user_id", $id)->first();
 
             if ($code instanceOf Code) {
                 $code->delete();
             }
 
-            Cookie::queue(Cookie::forget('id'));
-            Session::flush();
-            Auth::logout();
+            // Cookie::queue(Cookie::forget('id'));
+            // Session::flush();
+            // Auth::logout();
             
             return redirect()->route('auth');
         }
@@ -54,7 +54,7 @@ class VerificationCodeController extends Controller
         return view('code');
     }
 
-    public static function validateCode(Request $request) {
+    public static function validateCode(Request $request, $id) {
         try {
 
             $rules = [
